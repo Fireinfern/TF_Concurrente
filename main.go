@@ -93,6 +93,7 @@ func binarizarCategorias(y []float64, cant int) [][]float64 {
 	return catBin
 }
 
+// Opencsv Open a CSV file as a slice of slices of strings
 func Opencsv(file string) [][]string {
 	csvfile, err := os.Open(file)
 	if err != nil {
@@ -116,6 +117,8 @@ func Opencsv(file string) [][]string {
 	//fmt.Print(table)
 	return table
 }
+
+//
 func convertStringToFloat(number string) float64 {
 	s, err := strconv.ParseFloat(number, 64)
 	if err != nil {
@@ -124,10 +127,12 @@ func convertStringToFloat(number string) float64 {
 	return s
 }
 
+// SetConvertionInArray Convert a value in an string array to float64
 func SetConvertionInArray(org []string, pos int) float64 {
 	return convertStringToFloat(org[pos])
 }
 
+// ConvertStringArrayToFloatArray converts an array of strings to an array of float64
 func ConvertStringArrayToFloatArray(stringArray []string) []float64 {
 	var newArray []float64
 	for i := 0; i < len(stringArray); i++ {
@@ -136,6 +141,7 @@ func ConvertStringArrayToFloatArray(stringArray []string) []float64 {
 	return newArray
 }
 
+// DownloadFile gets a file and downloading using the file path and the url of the file
 func DownloadFile(filepath string, url string) error {
 
 	// Get the data
@@ -171,7 +177,7 @@ func main() {
 	}
 	catY := categorizeUniqueStrings(uniqueElementsStrings(Y), Y)
 	// Prints de prueba para conversion y categorizacion
-	//fmt.Println(catY)
+	// fmt.Println(catY)
 	l_rate := 0.1
 	n_epoch := 5
 	binCat := binarizarCategorias(catY, len(uniqueElementsStrings(Y)))
