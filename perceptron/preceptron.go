@@ -28,6 +28,12 @@ type Y struct {
 	Virginica  float64 `json:"Virginica"`
 }
 
+type CompleteWeights struct {
+	Setosa     []float64 `json:"Setosa"`
+	Versicolor []float64 `json:"Versicolor"`
+	Virginica  []float64 `json:"Virginica"`
+}
+
 func predecir(fila, pesos []float64) float64 {
 	activador := pesos[0]
 	for i := 0; i < len(fila); i++ {
@@ -42,6 +48,7 @@ func predecir(fila, pesos []float64) float64 {
 
 func entrenarPesos(entrenamiento_X [][]float64, entrenamiento_Y []float64, l_rate float64, n_epoch int) []float64 {
 	pesos := make([]float64, 0)
+	//fmt.Println(pesos)
 	for i := 0; i < len(entrenamiento_X[0])+1; i++ {
 		pesos = append(pesos, 0.0)
 	}
@@ -56,12 +63,16 @@ func entrenarPesos(entrenamiento_X [][]float64, entrenamiento_Y []float64, l_rat
 				pesos[j+1] = pesos[j+1] + l_rate*error*row[j]
 			}
 		}
+
 	}
+	//fmt.Println(pesos)
 	return pesos
 }
 
 func obtenerPesos(X [][]float64, y []float64, l_rate float64, n_epochs int, c chan []float64) {
-	c <- entrenarPesos(X, y, l_rate, n_epochs)
+	pesos := entrenarPesos(X, y, l_rate, n_epochs)
+	//fmt.Println(pesos)
+	c <- pesos
 	close(c)
 }
 
@@ -93,6 +104,13 @@ func GetY(yChanel chan []Y) {
 	return
 }
 
+func sendData(weights CompleteWeights) {
+	conn, _ := net.Dial("tcp", "localhost:8000")
+	defer conn.Close()
+	enc := json.NewEncoder(conn)
+	enc.Encode(weights)
+}
+
 func main() {
 	xChanel := make(chan []X)
 	yChanel := make(chan []Y)
@@ -114,9 +132,9 @@ func main() {
 		y2 = append(y2, val.Versicolor)
 		y3 = append(y3, val.Virginica)
 	}
-	fmt.Println(y1)
-	fmt.Println(y2)
-	fmt.Println(y3)
+	//fmt.Println(y1)
+	//fmt.Println(y2)
+	//fmt.Println(y3)
 	l_rate := 0.1
 	n_epoch := 5
 	peso1 := make(chan []float64)
@@ -125,10 +143,17 @@ func main() {
 	go obtenerPesos(xTrain, y1, l_rate, n_epoch, peso1)
 	go obtenerPesos(xTrain, y2, l_rate, n_epoch, peso2)
 	go obtenerPesos(xTrain, y3, l_rate, n_epoch, peso3)
-	// pesos1, _ := <-peso1
-	// pesos2, _ := <-peso2
-	// pesos3, _ := <-peso3
-	println(<-peso1)
-	println(<-peso2)
-	println(<-peso3)
+	pesos1, _ := <-peso1
+	pesos2, _ := <-peso2
+	pesos3, _ := <-peso3
+	fmt.Println(pesos1)
+	fmt.Println(pesos2)
+	fmt.Println(pesos3)
+	var weights CompleteWeights
+	weights.Setosa = (pesos1)
+	weights.Versicolor = (pesos2)
+	weights.Virginica = (pesos3)
+	sendData(weights)
+	fmt.Println("Complete")
+
 }

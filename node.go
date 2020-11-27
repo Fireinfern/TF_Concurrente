@@ -31,6 +31,12 @@ type Y struct {
 	Virginica  float64 `json:"Virginica"`
 }
 
+type CompleteWeights struct {
+	Setosa     []float64 `json:"Setosa"`
+	Versicolor []float64 `json:"Versicolor"`
+	Virginica  []float64 `json:"Virginica"`
+}
+
 func GetBasicIris(iris chan []Iris) {
 	ln, _ := net.Listen("tcp", "localhost:8000") // <- crea conexion local
 	defer ln.Close()
@@ -99,6 +105,19 @@ func GetBinCat(yChanel chan []Y) {
 	return
 }
 
+func GetWeights(weightsChanel chan CompleteWeights) {
+	ln, _ := net.Listen("tcp", "localhost:8000") // <- crea conexion local
+	defer ln.Close()
+	con, _ := ln.Accept() // <- crea servidor
+	defer con.Close()
+	var auxWeight CompleteWeights
+	dec := json.NewDecoder(con)
+	dec.Decode(&auxWeight)
+	weightsChanel <- auxWeight
+	close(weightsChanel)
+	return
+}
+
 func main() {
 	iris := make(chan []Iris)
 	go GetBasicIris(iris)
@@ -119,4 +138,8 @@ func main() {
 	fmt.Println(y)
 	SendX(x)
 	SendY(y)
+	weightsChanel := make(chan CompleteWeights)
+	go GetWeights(weightsChanel)
+	weights := <-weightsChanel
+	fmt.Println(weights)
 }
