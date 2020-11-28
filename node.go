@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"net/http"
+
+	"github.com/labstack/echo"
 )
 
 var (
@@ -142,4 +145,12 @@ func main() {
 	go GetWeights(weightsChanel)
 	weights := <-weightsChanel
 	fmt.Println(weights)
+
+	e := echo.New()
+	e.GET("/getweights", func(c echo.Context) error {
+		callback := c.QueryParam("callback")
+		return c.JSONP(http.StatusOK, callback, &weights)
+	})
+
+	e.Logger.Fatal(e.Start(":8080"))
 }
